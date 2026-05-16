@@ -263,8 +263,14 @@ Built by a **Data Engineer specialising in Mining Operations Analytics**, focuse
 - Scalable data pipelines 
 - Business-aligned analytics for resource industries 
 
-📫 *For collaboration or client work, connect via LinkedIn.*
+🔗 *For collaboration or client work, connect via LinkedIn.*
 [LinkedIn](https://www.linkedin.com/in/aaron-mietzel/)
+
+📫 *Email me directly at:*
+[amietzel@runemech.com](mailto:amietzel@runemech.com)
+
+🌐 *Or visit:* 
+[runemech.com](https://runemech.com)
 
 ---
 
