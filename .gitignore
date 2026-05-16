@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Airflow
+logs/
+airflow_dags/__pycache__/
+
+# Environment
+.env
+
+# Docker
+*.pid
+
+# OS
+.DS_Store

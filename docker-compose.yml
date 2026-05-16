@@ -1,0 +1,101 @@
+services:
+  # ===============================
+  # TIMESCALEDB (for telemetry data)
+  # ===============================
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: timescaledb
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${TS_DB_USER}
+      POSTGRES_PASSWORD: ${TS_DB_PASSWORD}
+      POSTGRES_DB: ${TS_DB_NAME}
+    ports:
+      - "5434:5432"   # Host connects on localhost:5434
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+
+  # ===============================
+  # POSTGRES (for Airflow metadata)
+  # ===============================
+  airflow_postgres:
+    image: postgres:15
+    env_file:
+      - .env    
+    environment:
+      POSTGRES_USER: ${AIRFLOW_DB_USER}
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD}
+      POSTGRES_DB: ${AIRFLOW_DB_NAME}
+    ports:
+      - "5433:5432"   # Host can access on localhost:5433 if needed
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+
+
+  # ===============================
+  # AIRFLOW WEBSERVER
+  # ===============================
+  airflow-webserver:
+    image: apache/airflow:2.9.3
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow_postgres:5432/${AIRFLOW_DB_NAME}
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary"
+      AIRFLOW__WEBSERVER__RBAC: 'True'
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow_dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./scripts:/opt/airflow/scripts
+      - ./plugins:/opt/airflow/plugins
+      - ./data:/opt/airflow/data
+    command: webserver
+
+
+  # ===============================
+  # AIRFLOW SCHEDULER
+  # ===============================
+  airflow-scheduler:
+    image: apache/airflow:2.9.3
+    env_file:
+      - .env    
+    depends_on:
+      - airflow-webserver
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow_postgres:5432/${AIRFLOW_DB_NAME}
+      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary"
+    volumes:
+      - ./airflow_dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./scripts:/opt/airflow/scripts
+      - ./plugins:/opt/airflow/plugins
+      - ./data:/opt/airflow/data
+    command: scheduler
+
+
+  # ===============================
+  # GRAFANA
+  # ===============================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - timescaledb
+
+volumes:
+  timescale_data:
+  airflow_postgres_data:
+  grafana_data:
+  
